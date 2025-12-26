@@ -1,0 +1,20 @@
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Broker metrics
+  - pattern: "kafka.server<type=(.+), name=(.+)><>Value"
+  - pattern: "kafka.server<type=(.+), name=(.+)><>Count"
+
+  # Topic metrics
+  - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count"
+
+  # Controller metrics
+  - pattern: "kafka.controller<type=(.+), name=(.+)><>Value"
+
+  # Log / partition metrics
+  - pattern: "kafka.log<type=(.+), name=(.+)><>Value"
+
+  # JVM
+  - pattern: "java.lang<type=Memory><HeapMemoryUsage>(used|max)"
+  - pattern: "java.lang<type=GarbageCollector, name=(.+)><>CollectionTime"
