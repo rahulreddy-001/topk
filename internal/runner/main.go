@@ -33,7 +33,7 @@ func Start(
 	ctx, cancel := context.WithCancel(context.Background())
 
 	wg := &sync.WaitGroup{}
-	wg.Go(func() { SimulateScores(ctx, producer, 1_000_000, 10_000) })
+	wg.Go(func() { SimulateScores(ctx, producer, 1_000_000, 1_000_000) })
 	wg.Go(func() { StartLeaderboardWorker(ctx, rdb, consumer) })
 	wg.Go(func() { StartSnapshotBuilder(ctx, rdb) })
 	wg.Go(func() { SimulateReads(ctx, rdb, 20_000) })

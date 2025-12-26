@@ -12,7 +12,9 @@
     },
     "kafka": {
         "brokers": [
-            "localhost:9092"
+            "localhost:29092",
+            "localhost:39092",
+            "localhost:49092"
         ],
         "topic": "score_events",
         "group_id": "topk_consumer"

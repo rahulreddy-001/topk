@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -31,6 +32,13 @@ func initKafka(cfg *Config) (*kafka.Writer, *kafka.Reader, error) {
 		},
 	)
 	connCheck := kafkaPing(cfg.Kafka.Brokers)
+	if connCheck != nil {
+		return  nil, nil, connCheck
+	}
+	err := ensureTopic(cfg.Kafka.Brokers, cfg.Kafka.Topic)
+	if err != nil {
+		return  nil, nil, err
+	}
 	return kafkaWriter, kafkaReader, connCheck
 }
 
@@ -42,5 +50,24 @@ func kafkaPing(brokers []string) error {
 	defer conn.Close()
 
 	_, err = conn.Brokers()
+	return err
+}
+
+func ensureTopic(brokers []string, topic string) error {
+	client := kafka.Client{
+		Addr: kafka.TCP(brokers...),
+	}
+
+	req := &kafka.CreateTopicsRequest{
+		Topics: []kafka.TopicConfig{
+			{
+				Topic:             topic,
+				NumPartitions:     3,
+				ReplicationFactor: 3,
+			},
+		},
+	}
+
+	_, err := client.CreateTopics(context.Background(), req)
 	return err
 }

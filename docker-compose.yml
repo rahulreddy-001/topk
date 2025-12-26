@@ -7,24 +7,187 @@ services:
     ports:
       - "9091:6379"
     volumes:
-      - /home/rahul.a/personal/dev/go/pg/topk/data/redis:/data
+      - ./data/redis:/data
 
-  kafka:
+  kafka_controller_1:
     image: apache/kafka:4.1.1
-    container_name: topk_kafka_container
-    ports:
-      - "9092:9092"
+    container_name: kafka_controller_1
+    hostname: kafka_controller_1
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_PROCESS_ROLES: controller
 
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: >
+        1@kafka_controller_1:9093,
+        2@kafka_controller_2:9093,
+        3@kafka_controller_3:9093
+
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
-      - /home/rahul.a/personal/dev/go/pg/topk/data/kafka:/var/lib/kafka/data
+      - ./data/kafka_controller_1:/var/lib/kafka/data
+
+  kafka_controller_2:
+    image: apache/kafka:4.1.1
+    container_name: kafka_controller_2
+    hostname: kafka_controller_2
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: controller
+
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: >
+        1@kafka_controller_1:9093,
+        2@kafka_controller_2:9093,
+        3@kafka_controller_3:9093
+
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - ./data/kafka_controller_2:/var/lib/kafka/data
+
+  kafka_controller_3:
+    image: apache/kafka:4.1.1
+    container_name: kafka_controller_3
+    hostname: kafka_controller_3
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: controller
+
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: >
+        1@kafka_controller_1:9093,
+        2@kafka_controller_2:9093,
+        3@kafka_controller_3:9093
+
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - ./data/kafka_controller_3:/var/lib/kafka/data
+
+  kafka_broker_1:
+    image: apache/kafka:4.1.1
+    container_name: kafka_broker_1
+    hostname: kafka_broker_1
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: broker
+
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka_broker_1:9092,EXTERNAL://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka_controller_1:9093,2@kafka_controller_2:9093,3@kafka_controller_3:9093
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_JMX_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/jmx-exporter.yml"
+    volumes:
+      - ./data/kafka_broker_1:/var/lib/kafka/data
+      - ./jmx:/opt/jmx
+
+
+  kafka_broker_2:
+    image: apache/kafka:4.1.1
+    container_name: kafka_broker_2
+    hostname: kafka_broker_2
+    ports:
+      - "39092:39092"
+    environment:
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: broker
+
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:39092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka_broker_2:9092,EXTERNAL://localhost:39092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka_controller_1:9093,2@kafka_controller_2:9093,3@kafka_controller_3:9093
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_JMX_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/jmx-exporter.yml"
+    volumes:
+      - ./data/kafka_broker_2:/var/lib/kafka/data
+      - ./jmx:/opt/jmx
+
+  kafka_broker_3:
+    image: apache/kafka:4.1.1
+    container_name: kafka_broker_3
+    hostname: kafka_broker_3
+    ports:
+      - "49092:49092"
+    environment:
+      KAFKA_NODE_ID: 6
+      KAFKA_PROCESS_ROLES: broker
+
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:49092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka_broker_3:9092,EXTERNAL://localhost:49092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka_controller_1:9093,2@kafka_controller_2:9093,3@kafka_controller_3:9093
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_JMX_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/jmx-exporter.yml"
+    volumes:
+      - ./data/kafka_broker_3:/var/lib/kafka/data
+      - ./jmx:/opt/jmx
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - kafka_broker_1
+      - kafka_broker_2
+      - kafka_broker_3
+  
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "9099:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+
+
+
+# Broker Config
+# auto.create.topics.enable
+
+# Topic Config
+# num.partitions
+# default.replication.factor
+# log.retention.ms
+# log.retention.bytes
+# min.insync.replicas
+# message.max.bytes
